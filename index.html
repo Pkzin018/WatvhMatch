@@ -3,83 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WatchMatch 🎬</title>
+    <title>WatchMatch Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
-        .card { background: #1e293b; border-radius: 20px; padding: 15px; max-width: 350px; margin: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        img { width: 100%; border-radius: 15px; height: 450px; object-fit: cover; }
-        .btns { display: flex; justify-content: space-around; margin-top: 20px; }
-        button { border: none; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 18px; }
-        .no { background: #ef4444; color: white; }
-        .yes { background: #22c55e; color: white; }
-        h2 { font-size: 1.2rem; margin: 15px 0; height: 50px; overflow: hidden; }
+        :root {
+            --primary: #8b5cf6;
+            --secondary: #ec4899;
+            --bg: #030712;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at top right, #1e1b4b, transparent), radial-gradient(circle at bottom left, #312e81, transparent);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Glassmorphism Screens */
+        .screen {
+            display: none;
+            width: 90%;
+            max-width: 400px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .active { display: block; }
+
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Inputs e Botões Estilizados */
+        h1 { font-weight: 600; font-size: 1.8rem; text-align: center; margin-bottom: 25px; background: linear-gradient(to right, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        input { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 15px; box-sizing: border-box; }
+        
+        button { width: 100%; border: none; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5); }
+
+        /* Card de Filme Moderno */
+        .movie-card { text-align: center; }
+        .poster-wrapper { position: relative; border-radius: 20px; overflow: hidden; height: 420px; border: 1px solid var(--border); }
+        .poster-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .controls { display: flex; gap: 15px; margin-top: 20px; }
+        .btn-circle { width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .no { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .yes { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+
+        /* Match List */
+        .match-list { max-height: 400px; overflow-y: auto; margin-top: 15px; }
+        .match-card { display: flex; gap: 12px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 15px; margin-bottom: 10px; align-items: center; border: 1px solid var(--border); }
+        .match-card img { width: 45px; height: 65px; border-radius: 8px; object-fit: cover; }
     </style>
 </head>
 <body>
 
-    <div class="card">
+    <div id="screen-auth" class="screen active">
         <h1>WatchMatch</h1>
-        <img id="poster" src="https://via.placeholder.com/500x750?text=Carregando..." alt="Poster">
-        <h2 id="titulo">Carregando filme...</h2>
-        <div class="btns">
-            <button class="no" onclick="proximo()">Próximo ⏭️</button>
-            <button class="yes" onclick="darLike()">Gostei ❤️</button>
+        <p style="text-align:center; color:#9ca3af; font-size:0.9rem;">Crie seu acesso ou entre</p>
+        <input type="text" id="auth-user" placeholder="Seu nome">
+        <input type="text" id="auth-partner" placeholder="Nome do parceiro(a)">
+        <input type="password" id="auth-pass" placeholder="Senha simples">
+        <button class="btn-primary" onclick="handleAuth()">Entrar / Cadastrar</button>
+    </div>
+
+    <div id="screen-main" class="screen">
+        <div class="movie-card">
+            <div class="poster-wrapper">
+                <img id="poster" class="poster-img" src="" alt="Poster">
+            </div>
+            <h2 id="titulo" style="font-size:1.1rem; margin:15px 0;"></h2>
+            <div class="controls">
+                <button class="btn-circle no" onclick="loadMovie()">✕</button>
+                <button class="btn-circle yes" onclick="handleLike()">❤️</button>
+            </div>
+            <button onclick="showMatches()" style="background:none; color:#9ca3af; font-size:13px; text-decoration:underline;">Ver nossos matches</button>
         </div>
     </div>
 
+    <div id="screen-matches" class="screen">
+        <h1>Nossos Matches 🎉</h1>
+        <div id="list-container" class="match-list"></div>
+        <button class="btn-primary" onclick="backToMain()">Voltar</button>
+    </div>
+
     <script>
-        // === PREENCHA AQUI ===
         const CONFIG = {
-            TMDB_KEY: '3d0612477f605d85e21708f54f1d58be', 
-            SB_URL: 'https://sua-url.supabase.co', 
-            SB_KEY: 'sua-anon-key-do-supabase',
-            USUARIO: 'Andre',
-            PARCEIRO: 'Esposa' 
+            TMDB_KEY: '3d0612477f605d85e21708f54f1d58be',
+            SB_URL: 'COLE_AQUI_URL_SUPABASE',
+            SB_KEY: 'COLE_AQUI_ANON_KEY'
         };
 
-        let atual = {};
+        let currentUser = null;
+        let currentMovie = {};
 
-        async function proximo() {
-            const page = Math.floor(Math.random() * 20) + 1;
-            const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${CONFIG.TMDB_KEY}&language=pt-BR&page=${page}`);
+        // 1. Lógica de Auth e Cadastro
+        async function handleAuth() {
+            const user = document.getElementById('auth-user').value;
+            const partner = document.getElementById('auth-partner').value;
+            const pass = document.getElementById('auth-pass').value;
+
+            if(!user || !partner || !pass) return alert("Preencha tudo!");
+
+            // Tenta buscar se já existe o par
+            const res = await fetch(`${CONFIG.SB_URL}/rest/v1/users_pairs?user_name=eq.${user}&password=eq.${pass}`, {
+                headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
+            });
             const data = await res.json();
-            atual = data.results[Math.floor(Math.random() * data.results.length)];
-            
-            document.getElementById('poster').src = `https://image.tmdb.org/t/p/w500${atual.poster_path}`;
-            document.getElementById('titulo').innerText = atual.title || atual.name;
+
+            if(data.length === 0) {
+                // Se não existe, cria (Cadastro)
+                await fetch(`${CONFIG.SB_URL}/rest/v1/users_pairs`, {
+                    method: 'POST',
+                    headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_name: user, partner_name: partner, password: pass })
+                });
+            }
+
+            currentUser = { name: user, partner: partner };
+            localStorage.setItem('wm_user', JSON.stringify(currentUser));
+            switchScreen('screen-main');
+            loadMovie();
         }
 
-        async function darLike() {
-            // Salva no Supabase
+        // 2. Carregar Filmes
+        async function loadMovie() {
+            const page = Math.floor(Math.random() * 50) + 1;
+            const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${CONFIG.TMDB_KEY}&language=pt-BR&page=${page}`);
+            const data = await res.json();
+            currentMovie = data.results[Math.floor(Math.random() * data.results.length)];
+            
+            document.getElementById('poster').src = `https://image.tmdb.org/t/p/w500${currentMovie.poster_path}`;
+            document.getElementById('titulo').innerText = currentMovie.title || currentMovie.name;
+        }
+
+        // 3. Like e Match em Tempo Real
+        async function handleLike() {
             await fetch(`${CONFIG.SB_URL}/rest/v1/matches`, {
                 method: 'POST',
-                headers: {
-                    'apikey': CONFIG.SB_KEY,
-                    'Authorization': `Bearer ${CONFIG.SB_KEY}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    user_name: CONFIG.USUARIO,
-                    media_id: atual.id.toString(),
-                    media_name: atual.title || atual.name,
-                    media_poster: `https://image.tmdb.org/t/p/w500${atual.poster_path}`
+                    user_name: currentUser.name,
+                    media_id: currentMovie.id.toString(),
+                    media_name: currentMovie.title || currentMovie.name,
+                    media_poster: `https://image.tmdb.org/t/p/w500${currentMovie.poster_path}`
                 })
             });
 
-            // Checa Match
-            const check = await fetch(`${CONFIG.SB_URL}/rest/v1/matches?media_id=eq.${atual.id}&user_name=eq.${CONFIG.PARCEIRO}`, {
+            // Checa match
+            const check = await fetch(`${CONFIG.SB_URL}/rest/v1/matches?media_id=eq.${currentMovie.id}&user_name=eq.${currentUser.partner}`, {
                 headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
             });
             const matches = await check.json();
 
-            if (matches.length > 0) {
-                alert("🔥 MATCH! Vocês vão assistir: " + (atual.title || atual.name));
-            } else {
-                proximo();
-            }
+            if(matches.length > 0) alert("🔥 MATCH REAL! Vocês dois querem ver: " + (currentMovie.title || currentMovie.name));
+            loadMovie();
         }
 
-        proximo();
+        // 4. Mostrar apenas matches REAIS (onde ambos deram like)
+        async function showMatches() {
+            switchScreen('screen-matches');
+            const container = document.getElementById('list-container');
+            container.innerHTML = 'Buscando afinidades...';
+
+            const res = await fetch(`${CONFIG.SB_URL}/rest/v1/matches?select=*`, {
+                headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
+            });
+            const allLikes = await res.json();
+            
+            // Filtra o que os dois curtiram
+            const myLikes = allLikes.filter(l => l.user_name === currentUser.name);
+            const partnerLikes = allLikes.filter(l => l.user_name === currentUser.partner);
+            
+            const realMatches = myLikes.filter(my => partnerLikes.some(p => p.media_id === my.media_id));
+
+            container.innerHTML = realMatches.length ? realMatches.map(m => `
+                <div class="match-card">
+                    <img src="${m.media_poster}">
+                    <div>
+                        <div style="font-weight:600; font-size:14px;">${m.media_name}</div>
+                        <div style="font-size:11px; color:#22c55e;">Vocês dois deram match!</div>
+                    </div>
+                </div>
+            `).join('') : '<p style="text-align:center; color:#6b7280;">Nenhum match ainda. Continue dando likes!</p>';
+        }
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function backToMain() { switchScreen('screen-main'); }
+
+        // Auto-login
+        const saved = localStorage.getItem('wm_user');
+        if(saved) { currentUser = JSON.parse(saved); switchScreen('screen-main'); loadMovie(); }
     </script>
 </body>
 </html>
