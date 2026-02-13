@@ -13,39 +13,40 @@
         .screen { display: none; width: 95%; max-width: 400px; background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); max-height: 95vh; overflow-y: auto; }
         .active { display: flex; flex-direction: column; }
         h1 { font-size: 1.5rem; text-align: center; background: linear-gradient(to right, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
-        input { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 15px; color: white; margin-bottom: 12px; font-size: 16px; }
-        button { width: 100%; border: none; padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
-        .btn-main { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+        input { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 15px; color: white; margin-bottom: 12px; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        button { width: 100%; border: none; padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 10px; color: white; }
+        .btn-main { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
         .btn-ghost { background: transparent; color: #9ca3af; text-decoration: underline; font-size: 13px; }
         .poster-card { position: relative; border-radius: 20px; overflow: hidden; height: 45vh; border: 1px solid rgba(255,255,255,0.1); }
         .poster-img { width: 100%; height: 100%; object-fit: cover; }
         .controls { display: flex; justify-content: space-evenly; margin-top: 15px; }
-        .btn-action { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 1px solid rgba(255,255,255,0.2); }
-        .no { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-        .yes { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-        .history-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 10px; }
-        .history-item img { width: 40px; height: 60px; border-radius: 5px; object-fit: cover; }
+        .btn-action { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+        .no { color: #ef4444; }
+        .yes { color: #22c55e; }
+        .history-item { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; }
+        .history-item img { width: 50px; height: 75px; border-radius: 8px; object-fit: cover; }
     </style>
 </head>
 <body>
 
     <div id="screen-auth" class="screen">
         <h1>WatchMatch</h1>
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="password" placeholder="Senha">
+        <input type="email" id="email" placeholder="Seu E-mail">
+        <input type="password" id="password" placeholder="Sua Senha">
         <button class="btn-main" onclick="handleAuth('in')">Entrar</button>
-        <button class="btn-ghost" onclick="handleAuth('up')">Criar conta</button>
+        <button class="btn-ghost" onclick="handleAuth('up')">Criar nova conta</button>
     </div>
 
     <div id="screen-main" class="screen">
         <div class="poster-card"><img id="poster" class="poster-img" src=""></div>
-        <h2 id="titulo" style="font-size: 1rem; text-align: center; margin: 10px 0;">Procurando...</h2>
+        <h2 id="titulo" style="font-size: 1rem; text-align: center; margin: 10px 0;">Carregando...</h2>
         <div class="controls">
             <button class="btn-action no" onclick="loadMovie()">✕</button>
             <button class="btn-action yes" onclick="handleLike()">❤️</button>
         </div>
         <div style="display:flex; justify-content: space-between; margin-top: 20px;">
-            <button class="btn-ghost" onclick="showHistory()">Gostei</button>
+            <button class="btn-ghost" onclick="showHistory()">Meus Gostei</button>
             <button class="btn-ghost" onclick="logout()" style="color:#ef4444;">Sair</button>
         </div>
     </div>
@@ -53,84 +54,111 @@
     <div id="screen-history" class="screen">
         <h1>Minha Lista 🍿</h1>
         <div id="history-list"></div>
-        <button class="btn-main" style="margin-top:15px" onclick="showMain()">Voltar</button>
+        <button class="btn-main" style="margin-top:15px" onclick="backToMain()">Voltar</button>
     </div>
 
     <script>
-        const CONFIG = {
-            SB_URL: 'https://uttkzonbyniifegawdh.supabase.co',
-            SB_KEY: 'sb_publishable_A3D6Tzm1JoB09wVMAXbviA_zSat7z99o7z99o7z99o7z99o7z99o7z99o7z99o7z99o7z99o7z99o7z99o7z99o', // Use a Publishable Key da imagem d06a77
-            TMDB_KEY: '3d0612477f605d85e21708f54f1d58be'
-        };
+        // Chaves extraídas das suas imagens d06a77 e d0715c
+        const SB_URL = 'https://uttkzonbyniifegawdh.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dGt6c29uYnluaWlmZWdhd2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzg0MTYsImV4cCI6MjA4NjU1NDQxNn0.uB8N7QWxVn6nIufmqjh2B2z8KFpR6MwKMjvuKRFRP60';
+        const TMDB_KEY = '3d0612477f605d85e21708f54f1d58be';
 
-        // Única declaração permitida
-        const supabaseApp = supabase.createClient(CONFIG.SB_URL, CONFIG.SB_KEY);
-        let userLogged = null;
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        let currentUser = null;
 
         async function handleAuth(type) {
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            const { data, error } = type === 'up' 
-                ? await supabaseApp.auth.signUp({ email, password })
-                : await supabaseApp.auth.signInWithPassword({ email, password });
 
-            if (error) alert(error.message);
-            else if (type === 'up') alert("Conta criada! Tente fazer login.");
-            else checkUser();
-        }
+            if (!email || !password) return alert("Preencha os campos!");
 
-        async function checkUser() {
-            const { data } = await supabaseApp.auth.getUser();
-            if (data.user) {
-                userLogged = data.user;
-                showMain();
-            } else {
-                document.getElementById('screen-auth').classList.add('active');
+            try {
+                const { data, error } = type === 'up' 
+                    ? await supabaseClient.auth.signUp({ email, password })
+                    : await supabaseClient.auth.signInWithPassword({ email, password });
+
+                if (error) throw error;
+
+                if (type === 'up') {
+                    alert("Conta criada! Verifique seu e-mail ou tente logar.");
+                } else {
+                    checkUser();
+                }
+            } catch (err) {
+                alert("Erro: " + err.message);
             }
         }
 
-        function showMain() {
+        async function checkUser() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (user) {
+                currentUser = user;
+                showScreen('screen-main');
+                loadMovie();
+            } else {
+                showScreen('screen-auth');
+            }
+        }
+
+        function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('screen-main').classList.add('active');
-            loadMovie();
+            document.getElementById(id).classList.add('active');
         }
 
         async function loadMovie() {
-            const page = Math.floor(Math.random() * 50) + 1;
-            const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${CONFIG.TMDB_KEY}&language=pt-BR&page=${page}`);
+            const page = Math.floor(Math.random() * 100) + 1;
+            const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_KEY}&language=pt-BR&page=${page}`);
             const data = await res.json();
             const movie = data.results[Math.floor(Math.random() * data.results.length)];
+            
+            if (!movie.poster_path) return loadMovie();
+
             window.currentMovie = movie;
             document.getElementById('poster').src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
             document.getElementById('titulo').innerText = movie.title || movie.name;
         }
 
         async function handleLike() {
-            await supabaseApp.from('matches').insert({
-                user_id: userLogged.id,
+            const { error } = await supabaseClient.from('matches').insert({
+                user_id: currentUser.id,
                 media_name: window.currentMovie.title || window.currentMovie.name,
                 media_poster: `https://image.tmdb.org/t/p/w500${window.currentMovie.poster_path}`,
                 media_id: window.currentMovie.id.toString()
             });
+            if (error) console.error(error);
             loadMovie();
         }
 
         async function showHistory() {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('screen-history').classList.add('active');
+            showScreen('screen-history');
             const list = document.getElementById('history-list');
-            list.innerHTML = 'Carregando...';
-            const { data } = await supabaseApp.from('matches').select('*').eq('user_id', userLogged.id);
-            list.innerHTML = data.map(m => `
-                <div class="history-item">
-                    <img src="${m.media_poster}">
-                    <span>${m.media_name}</span>
-                </div>
-            `).join('') || 'Vazio por enquanto.';
+            list.innerHTML = '<p style="text-align:center">Carregando...</p>';
+
+            const { data, error } = await supabaseClient
+                .from('matches')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (data && data.length > 0) {
+                list.innerHTML = data.map(m => `
+                    <div class="history-item">
+                        <img src="${m.media_poster}">
+                        <div>
+                            <strong style="display:block; font-size:14px;">${m.media_name}</strong>
+                            <small style="color:#22c55e">Salvo no perfil</small>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<p style="text-align:center; opacity:0.5;">Sua lista está vazia.</p>';
+            }
         }
 
+        function backToMain() { showScreen('screen-main'); }
+
         async function logout() {
-            await supabaseApp.auth.signOut();
+            await supabaseClient.auth.signOut();
             location.reload();
         }
 
