@@ -8,102 +8,45 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
-            --primary: #8b5cf6; 
-            --secondary: #ec4899; 
-            --bg: #030712; 
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #8b5cf6; --secondary: #ec4899; --bg: #030712; 
+            --glass: rgba(255, 255, 255, 0.05); --glass-border: rgba(255, 255, 255, 0.1);
         }
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Poppins', sans-serif; }
-        
         body { 
-            background: var(--bg); 
-            color: white; 
-            margin: 0; 
-            height: 100vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            overflow: hidden;
+            background: var(--bg); color: white; margin: 0; height: 100vh; 
+            display: flex; justify-content: center; align-items: center; overflow: hidden;
             background: radial-gradient(circle at top right, #1e1b4b, #030712);
         }
 
-        /* --- UI COMPONENTS --- */
+        /* --- UI --- */
         .screen { display: none; width: 90%; max-width: 400px; flex-direction: column; height: 90vh; position: relative; }
         .active { display: flex; }
+        .glass-card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 30px; padding: 25px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
 
-        .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 30px;
-            padding: 25px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        /* --- MENU LATERAL (DRAWER) --- */
+        /* --- MENU LATERAL --- */
         #side-menu {
-            position: fixed;
-            left: -100%;
-            top: 0;
-            width: 80%;
-            max-width: 300px;
-            height: 100%;
-            background: rgba(10, 10, 15, 0.98);
-            z-index: 1000;
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 30px 20px;
-            border-right: 1px solid var(--glass-border);
-            overflow-y: auto;
+            position: fixed; left: -100%; top: 0; width: 80%; max-width: 300px; height: 100%;
+            background: rgba(10, 10, 15, 0.98); z-index: 1000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 30px 20px; border-right: 1px solid var(--glass-border); overflow-y: auto;
         }
         #side-menu.open { left: 0; }
-        .overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 999;
-        }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; }
 
         /* --- BOTÕES --- */
-        button { border: none; border-radius: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; color: white; }
+        button { border: none; border-radius: 15px; font-weight: 600; cursor: pointer; transition: 0.3s; color: white; outline: none; }
         .btn-main { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 15px; width: 100%; font-size: 1rem; }
-        .btn-main:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn-round { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .btn-round { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; }
 
-        /* --- CARD DE FILME --- */
-        .poster-container {
-            flex: 1;
-            position: relative;
-            border-radius: 25px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            border: 1px solid var(--glass-border);
-        }
-        .poster-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .movie-info {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            padding: 40px 20px 20px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
-        }
+        /* --- CARD --- */
+        .poster-container { flex: 1; position: relative; border-radius: 25px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--glass-border); }
+        .poster-img { width: 100%; height: 100%; object-fit: cover; }
+        .movie-info { position: absolute; bottom: 0; width: 100%; padding: 40px 20px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); }
 
-        /* --- INPUTS --- */
-        input { 
-            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
-            border-radius: 12px; padding: 14px; color: white; margin-bottom: 15px; outline: none;
-        }
-
-        /* --- LISTA DE CURTIDAS --- */
-        .liked-item {
-            display: flex; align-items: center; gap: 15px; background: var(--glass);
-            padding: 10px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--glass-border);
-        }
-        .liked-item img { width: 45px; height: 65px; border-radius: 8px; object-fit: cover; }
-
-        .menu-btn { position: absolute; top: 10px; left: 0; background: none; font-size: 24px; z-index: 10; }
+        input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px; color: white; margin-bottom: 10px; }
+        
+        .liked-item { display: flex; align-items: center; gap: 12px; background: var(--glass); padding: 8px; border-radius: 12px; margin-bottom: 8px; font-size: 0.8rem; border: 1px solid var(--glass-border); }
+        .liked-item img { width: 40px; height: 55px; border-radius: 6px; object-fit: cover; }
+        .menu-toggle { position: absolute; top: 0; left: 0; background: none; font-size: 28px; z-index: 10; padding: 10px; }
     </style>
 </head>
 <body>
@@ -111,68 +54,61 @@
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
     <div id="side-menu">
-        <h2 style="background: linear-gradient(to right, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">WatchMatch</h2>
+        <h2 style="background: linear-gradient(to right, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px;">WatchMatch</h2>
+        <p style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 20px;">Seu Código: <b id="my-code" style="color:#a78bfa">...</b></p>
         
-        <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border);">
-            <p style="font-size: 0.8rem; color: #9ca3af; margin: 0;">Seu Código:</p>
-            <strong id="my-code" style="font-size: 1.4rem; color: #a78bfa; letter-spacing: 2px;">...</strong>
+        <div style="border-top: 1px solid var(--glass-border); padding-top: 20px;">
+            <input type="text" id="user-name" placeholder="Seu nome">
+            <input type="text" id="partner-code" placeholder="Cód. do Parceiro">
+            <button class="btn-main" onclick="saveProfile()" style="padding: 10px;">Salvar Perfil</button>
         </div>
 
-        <h4 style="margin: 20px 0 10px 0; font-size: 0.9rem; color: #9ca3af;">MEU PERFIL</h4>
-        <input type="text" id="user-name" placeholder="Seu nome">
-        <input type="text" id="partner-code" placeholder="Código do Parceiro">
-        <button class="btn-main" onclick="saveProfile()" style="padding: 10px; font-size: 0.9rem;">Salvar Perfil</button>
+        <h4 style="margin: 25px 0 10px; font-size: 0.8rem; color: #9ca3af; text-transform: uppercase;">Minhas Curtidas</h4>
+        <div id="liked-list"></div>
 
-        <h4 style="margin: 30px 0 15px 0; font-size: 0.9rem; color: #9ca3af;">MINHA LISTA ❤️</h4>
-        <div id="liked-list">
-            </div>
-
-        <button onclick="logout()" style="background:none; color:#ef4444; margin-top: 40px; text-decoration: underline;">Sair da conta</button>
+        <button onclick="logout()" style="background:none; color:#ef4444; margin-top: 30px; font-size: 0.8rem;">Sair da conta</button>
     </div>
 
     <div id="screen-auth" class="screen active">
         <div class="glass-card" style="margin-top: 20%;">
-            <h1>WatchMatch</h1>
+            <h1 style="text-align: center;">WatchMatch</h1>
             <input type="email" id="email" placeholder="E-mail">
             <input type="password" id="password" placeholder="Senha">
             <button class="btn-main" onclick="handleAuth('in')">Entrar</button>
-            <button onclick="handleAuth('up')" style="background:none; width:100%; margin-top:10px; color:#9ca3af;">Criar conta agora</button>
+            <button onclick="handleAuth('up')" style="background:none; width:100%; margin-top:10px; color:#9ca3af; font-size: 0.9rem;">Criar conta agora</button>
         </div>
     </div>
 
     <div id="screen-main" class="screen">
-        <button class="menu-btn" onclick="toggleMenu()">☰</button>
-        
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
         <div class="poster-container">
-            <img id="poster" class="poster-img" src="" alt="">
+            <img id="poster" class="poster-img" src="">
             <div class="movie-info">
-                <h2 id="titulo" style="margin:0; font-size: 1.4rem;">...</h2>
-                <p id="genero" style="font-size: 0.8rem; color: #a78bfa; margin: 5px 0 0 0;">Trendings</p>
+                <h2 id="titulo" style="margin:0;">Carregando...</h2>
+                <p id="genero" style="font-size: 0.8rem; color: #a78bfa; margin: 5px 0 0;">Destaques da Semana</p>
             </div>
         </div>
-
-        <div style="display: flex; justify-content: space-evenly; align-items: center; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-evenly; margin-bottom: 20px;">
             <button class="btn-round" style="background: #1f2937;" onclick="loadMovie()">✕</button>
             <button class="btn-round" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);" onclick="handleLike()">❤️</button>
         </div>
     </div>
 
     <div id="match-popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:2000; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-        <h1 style="font-size: 3rem; margin:0;">MATCH! 🎉</h1>
-        <p id="match-text" style="color:#d1d5db; margin: 20px 0;"></p>
-        <img id="match-img" style="width:250px; border-radius:20px; border:4px solid var(--primary);">
-        <button class="btn-main" style="width:200px; margin-top:30px;" onclick="closeMatch()">Continuar</button>
+        <h1 style="font-size: 2.5rem; margin:0;">MATCH! 🎉</h1>
+        <p id="match-text" style="color:#d1d5db; margin: 15px 0;"></p>
+        <img id="match-img" style="width:220px; border-radius:20px; border:3px solid var(--primary);">
+        <button class="btn-main" style="width:180px; margin-top:25px;" onclick="closeMatch()">Continuar</button>
     </div>
 
     <script>
-        onst SB_URL = 'https://uttkzsonbyniifegawdh.supabase.co'; 
+        const SB_URL = 'https://uttkzsonbyniifegawdh.supabase.co'; 
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dGt6c29uYnluaWlmZWdhd2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzg0MTYsImV4cCI6MjA4NjU1NDQxNn0.uB8N7QWxVn6nIufmqjh2B2z8KFpR6MwKMjvuKRFRP60';
         const TMDB_KEY = '3d0612477f605d85e21708f54f1d58be';
 
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
         let currentUser = null;
 
-        // --- MENU E NAVEGAÇÃO ---
         function toggleMenu() {
             const menu = document.getElementById('side-menu');
             const overlay = document.getElementById('overlay');
@@ -181,22 +117,16 @@
             if(menu.classList.contains('open')) loadLikedList();
         }
 
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        // --- AUTENTICAÇÃO ---
         async function handleAuth(type) {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
+            if(!email || !password) return alert("Preencha os campos!");
             try {
                 const { data, error } = type === 'up' 
                     ? await _supabase.auth.signUp({ email, password })
                     : await _supabase.auth.signInWithPassword({ email, password });
-                
                 if (error) throw error;
-                if (type === 'up') alert("Sucesso! Clique em Entrar agora.");
+                if (type === 'up') alert("Conta criada! Clique em Entrar.");
                 else checkUser();
             } catch (e) { alert(e.message); }
         }
@@ -206,7 +136,8 @@
             if (user) {
                 currentUser = user;
                 document.getElementById('my-code').innerText = user.id.substring(0,6).toUpperCase();
-                showScreen('screen-main');
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('screen-main').classList.add('active');
                 loadMovie();
                 const { data: profile } = await _supabase.from('users_pairs').select('*').eq('user_id', user.id).single();
                 if(profile) {
@@ -216,39 +147,34 @@
             }
         }
 
-        // --- FILMES ---
         async function loadMovie() {
-            const page = Math.floor(Math.random() * 100) + 1;
-            const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_KEY}&language=pt-BR&page=${page}`);
-            const data = await res.json();
-            const movie = data.results.filter(m => m.poster_path)[Math.floor(Math.random() * 15)];
-            window.currentMovie = movie;
-            document.getElementById('poster').src = 'https://image.tmdb.org/t/p/w500' + movie.poster_path;
-            document.getElementById('titulo').innerText = movie.title || movie.name;
+            const page = Math.floor(Math.random() * 80) + 1;
+            try {
+                const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_KEY}&language=pt-BR&page=${page}`);
+                const data = await res.json();
+                const movie = data.results.filter(m => m.poster_path)[Math.floor(Math.random() * 10)];
+                window.currentMovie = movie;
+                document.getElementById('poster').src = 'https://image.tmdb.org/t/p/w500' + movie.poster_path;
+                document.getElementById('titulo').innerText = movie.title || movie.name;
+            } catch (e) { console.log(e); }
         }
 
-        // --- LISTA DE CURTIDAS ---
         async function loadLikedList() {
-            const { data } = await _supabase.from('matches').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(10);
+            const { data } = await _supabase.from('matches').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(8);
             const container = document.getElementById('liked-list');
-            if(!data || data.length === 0) {
-                container.innerHTML = '<p style="font-size:0.8rem; color:#6b7280;">Nenhuma curtida ainda.</p>';
-                return;
-            }
-            container.innerHTML = data.map(m => `
+            container.innerHTML = data && data.length ? data.map(m => `
                 <div class="liked-item">
                     <img src="${m.media_poster}">
-                    <span style="font-size:0.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.media_name}</span>
+                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.media_name}</span>
                 </div>
-            `).join('');
+            `).join('') : '<p style="font-size:0.7rem; color:#6b7280;">Nada por aqui.</p>';
         }
 
-        // --- AÇÕES ---
         async function saveProfile() {
             const name = document.getElementById('user-name').value;
             const code = document.getElementById('partner-code').value.trim().toUpperCase();
             await _supabase.from('users_pairs').upsert({ user_id: currentUser.id, user_name: name, partner_code: code });
-            alert("Perfil Atualizado!");
+            alert("Perfil salvo!");
         }
 
         async function handleLike() {
@@ -259,13 +185,12 @@
                 media_poster: 'https://image.tmdb.org/t/p/w500' + movie.poster_path,
                 media_id: movie.id.toString()
             });
-
             const pCode = document.getElementById('partner-code').value.toUpperCase();
             if(pCode) {
                 const { data } = await _supabase.from('matches').select('user_id').eq('media_id', movie.id.toString());
                 if(data.some(m => m.user_id.substring(0,6).toUpperCase() === pCode)) {
                     document.getElementById('match-img').src = 'https://image.tmdb.org/t/p/w500' + movie.poster_path;
-                    document.getElementById('match-text').innerText = "Vocês deram match em: " + (movie.title || movie.name);
+                    document.getElementById('match-text').innerText = "Vocês querem ver: " + (movie.title || movie.name);
                     document.getElementById('match-popup').style.display = 'flex';
                     return;
                 }
@@ -275,9 +200,7 @@
 
         function closeMatch() { document.getElementById('match-popup').style.display = 'none'; loadMovie(); }
         async function logout() { await _supabase.auth.signOut(); window.location.reload(); }
-        
         window.onload = checkUser;
     </script>
 </body>
 </html>
-
