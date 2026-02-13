@@ -6,114 +6,52 @@
     <title>WatchMatch Pro 🎬</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #8b5cf6;
-            --secondary: #ec4899;
-            --bg: #030712;
-            --glass: rgba(255, 255, 255, 0.08);
-            --border: rgba(255, 255, 255, 0.12);
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at top right, #1e1b4b, transparent), radial-gradient(circle at bottom left, #312e81, transparent);
-            color: white;
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden; /* Evita scroll bobo no celular */
-        }
-
-        /* Container que se ajusta ao celular */
-        .screen {
-            display: none;
-            width: 92%;
-            max-width: 400px;
-            height: auto;
-            max-height: 90vh;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 28px;
-            padding: 25px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
-            animation: fadeIn 0.4s ease-out;
-            overflow-y: auto; /* Permite scroll dentro do card se necessário */
-        }
-
-        .active { display: block; }
-
-        @keyframes fadeIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        h1 { font-weight: 600; font-size: 1.6rem; text-align: center; margin-bottom: 20px; background: linear-gradient(to right, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        :root { --primary: #8b5cf6; --secondary: #ec4899; --bg: #030712; --glass: rgba(255, 255, 255, 0.08); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         
-        input { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 12px; padding: 14px; color: white; margin-bottom: 12px; font-size: 16px; /* Evita zoom no iPhone ao clicar */ }
-        
-        button { width: 100%; border: none; padding: 15px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: inherit; }
-        
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; margin-top: 10px; }
-        .btn-primary:active { transform: scale(0.96); }
+        .screen { display: none; width: 95%; max-width: 400px; background: var(--glass); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); max-height: 95vh; overflow-y: auto; }
+        .active { display: flex; flex-direction: column; }
 
-        /* Ajuste do Poster para Celular */
-        .poster-wrapper { 
-            position: relative; 
-            border-radius: 20px; 
-            overflow: hidden; 
-            height: 60vh; /* Altura baseada na tela do celular */
-            max-height: 450px; 
-            border: 1px solid var(--border); 
-        }
+        h1 { font-size: 1.5rem; text-align: center; background: linear-gradient(to right, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .id-badge { background: rgba(139, 92, 246, 0.2); padding: 10px; border-radius: 12px; text-align: center; font-weight: bold; margin: 10px 0; border: 1px dashed var(--primary); }
+        
+        input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 15px; color: white; margin-bottom: 12px; font-size: 16px; }
+        button { width: 100%; border: none; padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-main { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+
+        .poster-card { position: relative; border-radius: 20px; overflow: hidden; height: 55vh; border: 1px solid rgba(255,255,255,0.1); }
         .poster-img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .controls { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
-        .btn-circle { width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
-        .no { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); }
-        .yes { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.4); }
-
-        /* Estilo da lista de matches */
-        .match-card { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 15px; margin-bottom: 10px; border: 1px solid var(--border); }
-        .match-card img { width: 45px; height: 65px; border-radius: 8px; object-fit: cover; }
+        .controls { display: flex; justify-content: space-evenly; margin-top: 20px; }
+        .btn-action { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 1px solid rgba(255,255,255,0.2); }
+        .no { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .yes { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
     </style>
 </head>
 <body>
 
-    <div id="screen-auth" class="screen">
-        <h1>WatchMatch</h1>
-        <input type="text" id="auth-user" placeholder="Seu nome">
-        <input type="text" id="auth-partner" placeholder="Nome do seu par">
-        <input type="password" id="auth-pass" placeholder="Sua senha">
-        <button class="btn-primary" onclick="handleAuth()">Entrar no App</button>
+    <div id="screen-start" class="screen">
+        <h1>Seu Perfil</h1>
+        <input type="text" id="reg-name" placeholder="Seu Nome">
+        <button class="btn-main" onclick="registerUser()">Criar Minha Conta</button>
+    </div>
+
+    <div id="screen-link" class="screen">
+        <h1>Conectar Par</h1>
+        <div class="id-badge">Seu Código: <span id="my-code-display">...</span></div>
+        <p style="font-size: 0.8rem; color: #9ca3af; text-align: center;">Envie seu código para seu par ou insira o dele abaixo:</p>
+        <input type="text" id="partner-code-input" placeholder="Código do Parceiro (ex: WM-123)">
+        <button class="btn-main" onclick="linkPartner()">Vincular e Começar</button>
     </div>
 
     <div id="screen-main" class="screen">
-        <div class="movie-card">
-            <div class="poster-wrapper">
-                <img id="poster" class="poster-img" src="" alt="Poster">
-            </div>
-            <h2 id="titulo" style="font-size:1.1rem; margin:15px 0; text-align:center;"></h2>
-            <div class="controls">
-                <button class="btn-circle no" onclick="loadMovie()">✕</button>
-                <button class="btn-circle yes" onclick="handleLike()">❤️</button>
-            </div>
-            <button onclick="showMatches()" style="background:none; color:#9ca3af; font-size:13px; text-decoration:underline; border:none; width:100%; margin-top:15px;">Ver matches</button>
-            <button onclick="logout()" style="background:none; color:#ef4444; font-size:11px; border:none; width:100%; margin-top:10px; opacity:0.6;">Sair da conta</button>
+        <div class="poster-card"><img id="poster" class="poster-img" src=""></div>
+        <h2 id="titulo" style="font-size: 1.1rem; text-align: center; margin: 15px 0;"></h2>
+        <div class="controls">
+            <button class="btn-action no" onclick="loadMovie()">✕</button>
+            <button class="btn-action yes" onclick="handleLike()">❤️</button>
         </div>
-    </div>
-
-    <div id="screen-matches" class="screen">
-        <h1>Seus Matches 🍿</h1>
-        <div id="list-container"></div>
-        <button class="btn-primary" onclick="switchScreen('screen-main')">Voltar</button>
+        <button onclick="showMatches()" style="background:none; color:#9ca3af; margin-top: 15px; font-size: 12px; text-decoration: underline;">Nossos Matches</button>
     </div>
 
     <script>
@@ -123,113 +61,85 @@
             SB_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dGt6c29uYnluaWlmZWdhd2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzg0MTYsImV4cCI6MjA4NjU1NDQxNn0.uB8N7QWxVn6nIufmqjh2B2z8KFpR6MwKMjvuKRFRP60'
         };
 
-        let currentUser = null;
-        let currentMovie = {};
+        let user = null;
 
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
 
-        async function handleAuth() {
-            const user = document.getElementById('auth-user').value.trim();
-            const partner = document.getElementById('auth-partner').value.trim();
-            const pass = document.getElementById('auth-pass').value;
-
-            if(!user || !partner || !pass) return alert("Preencha tudo!");
-
-            currentUser = { name: user, partner: partner };
-            localStorage.setItem('wm_user_session', JSON.stringify(currentUser));
+        async function registerUser() {
+            const name = document.getElementById('reg-name').value.trim();
+            if(!name) return;
+            const myId = 'WM-' + Math.floor(1000 + Math.random() * 9000);
+            user = { name, id: myId, partner: null };
             
-            // Tenta salvar no Supabase em background
-            fetch(`${CONFIG.SB_URL}/rest/v1/users_pairs`, {
+            await fetch(`${CONFIG.SB_URL}/rest/v1/users_pairs`, {
                 method: 'POST',
-                headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-                body: JSON.stringify({ user_name: user, partner_name: partner, password: pass })
+                headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_name: name, password: myId }) // Usamos o ID como "senha" pra facilitar
             });
 
-            switchScreen('screen-main');
-            loadMovie();
+            localStorage.setItem('wm_session', JSON.stringify(user));
+            updateLinkScreen();
+        }
+
+        function updateLinkScreen() {
+            document.getElementById('my-code-display').innerText = user.id;
+            switchScreen('screen-link');
+        }
+
+        async function linkPartner() {
+            const pCode = document.getElementById('partner-code-input').value.trim();
+            if(!pCode) return;
+
+            // Busca o parceiro pelo código (password no banco)
+            const res = await fetch(`${CONFIG.SB_URL}/rest/v1/users_pairs?password=eq.${pCode}`, {
+                headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
+            });
+            const data = await res.json();
+
+            if(data.length > 0) {
+                user.partner = data[0].user_name;
+                localStorage.setItem('wm_session', JSON.stringify(user));
+                switchScreen('screen-main');
+                loadMovie();
+            } else {
+                alert("Código não encontrado!");
+            }
         }
 
         async function loadMovie() {
             const page = Math.floor(Math.random() * 80) + 1;
-            try {
-                const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${CONFIG.TMDB_KEY}&language=pt-BR&page=${page}`);
-                const data = await res.json();
-                currentMovie = data.results[Math.floor(Math.random() * data.results.length)];
-                
-                if(!currentMovie.poster_path) return loadMovie(); // Pula se não tiver imagem
-
-                document.getElementById('poster').src = `https://image.tmdb.org/t/p/w500${currentMovie.poster_path}`;
-                document.getElementById('titulo').innerText = currentMovie.title || currentMovie.name;
-            } catch (e) { console.error(e); }
+            const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${CONFIG.TMDB_KEY}&language=pt-BR&page=${page}`);
+            const data = await res.json();
+            const movie = data.results[Math.floor(Math.random() * data.results.length)];
+            window.currentMovie = movie;
+            document.getElementById('poster').src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+            document.getElementById('titulo').innerText = movie.title || movie.name;
         }
 
         async function handleLike() {
-            const movieData = {
-                user_name: currentUser.name,
-                media_id: currentMovie.id.toString(),
-                media_name: currentMovie.title || currentMovie.name,
-                media_poster: `https://image.tmdb.org/t/p/w500${currentMovie.poster_path}`
-            };
-
-            // Envia o like
-            fetch(`${CONFIG.SB_URL}/rest/v1/matches`, {
+            await fetch(`${CONFIG.SB_URL}/rest/v1/matches`, {
                 method: 'POST',
                 headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify(movieData)
+                body: JSON.stringify({
+                    user_name: user.name,
+                    media_id: window.currentMovie.id.toString(),
+                    media_name: window.currentMovie.title || window.currentMovie.name,
+                    media_poster: `https://image.tmdb.org/t/p/w500${window.currentMovie.poster_path}`
+                })
             });
-
-            // Feedback visual rápido antes de carregar o próximo
-            document.getElementById('poster').style.opacity = '0.3';
-            setTimeout(() => {
-                document.getElementById('poster').style.opacity = '1';
-                loadMovie();
-            }, 200);
+            loadMovie();
         }
 
-        async function showMatches() {
-            switchScreen('screen-matches');
-            const container = document.getElementById('list-container');
-            container.innerHTML = '<p style="text-align:center;">Buscando afinidades...</p>';
-
-            try {
-                const res = await fetch(`${CONFIG.SB_URL}/rest/v1/matches?select=*`, {
-                    headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
-                });
-                const allLikes = await res.json();
-                
-                const myLikes = allLikes.filter(l => l.user_name === currentUser.name);
-                const partnerLikes = allLikes.filter(l => l.user_name === currentUser.partner);
-                const realMatches = myLikes.filter(my => partnerLikes.some(p => p.media_id === my.media_id));
-
-                container.innerHTML = realMatches.length ? realMatches.map(m => `
-                    <div class="match-card">
-                        <img src="${m.media_poster}">
-                        <div>
-                            <div style="font-weight:600; font-size:14px;">${m.media_name}</div>
-                            <div style="font-size:11px; color:#22c55e;">Vocês dois querem ver!</div>
-                        </div>
-                    </div>
-                `).join('') : '<p style="text-align:center; padding:20px; opacity:0.5;">Nenhum match ainda.</p>';
-            } catch(e) { container.innerHTML = "Erro ao carregar lista."; }
-        }
-
-        function logout() {
-            localStorage.removeItem('wm_user_session');
-            window.location.reload();
-        }
-
-        // --- LÓGICA DE INICIALIZAÇÃO (O QUE CORRIGE O F5) ---
         window.onload = () => {
-            const session = localStorage.getItem('wm_user_session');
-            if (session) {
-                currentUser = JSON.parse(session);
-                switchScreen('screen-main');
-                loadMovie();
+            const saved = localStorage.getItem('wm_session');
+            if(saved) {
+                user = JSON.parse(saved);
+                user.partner ? (switchScreen('screen-main'), loadMovie()) : updateLinkScreen();
             } else {
-                switchScreen('screen-auth');
+                switchScreen('screen-start');
             }
         };
     </script>
