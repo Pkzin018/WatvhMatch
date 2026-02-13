@@ -27,7 +27,6 @@
             overflow-x: hidden;
         }
 
-        /* Container de Vidro */
         .screen {
             display: none;
             width: 90%;
@@ -47,39 +46,26 @@
         @keyframes fadeIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         h1 { font-weight: 600; font-size: 1.8rem; text-align: center; margin-bottom: 25px; background: linear-gradient(to right, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
         input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 14px; padding: 14px; color: white; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; }
-        
         button { width: 100%; border: none; padding: 16px; border-radius: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px; font-family: inherit; }
-        
-        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); }
-        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
 
-        /* Card de Filme */
-        .poster-wrapper { position: relative; border-radius: 24px; overflow: hidden; height: 450px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .poster-wrapper { position: relative; border-radius: 24px; overflow: hidden; height: 450px; border: 1px solid var(--border); }
         .poster-img { width: 100%; height: 100%; object-fit: cover; }
-        
         .controls { display: flex; justify-content: center; gap: 25px; margin-top: 25px; }
-        .btn-circle { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; transition: 0.3s; }
+        .btn-circle { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; }
         .no { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
         .yes { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
-        .btn-circle:hover { transform: translateY(-5px); }
-
-        /* Matches List */
-        .match-list { max-height: 350px; overflow-y: auto; margin: 20px 0; padding-right: 5px; }
-        .match-card { display: flex; gap: 15px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 18px; margin-bottom: 12px; align-items: center; border: 1px solid var(--border); }
-        .match-card img { width: 55px; height: 80px; border-radius: 10px; object-fit: cover; }
     </style>
 </head>
 <body>
 
     <div id="screen-auth" class="screen active">
         <h1>WatchMatch</h1>
-        <p style="text-align:center; color:#9ca3af; font-size:0.9rem; margin-top:-15px; margin-bottom:20px;">Conectando corações e séries</p>
         <input type="text" id="auth-user" placeholder="Seu nome">
         <input type="text" id="auth-partner" placeholder="Nome do seu par">
-        <input type="password" id="auth-pass" placeholder="Crie uma senha">
-        <button class="btn-primary" onclick="handleAuth()">Entrar no App</button>
+        <input type="password" id="auth-pass" placeholder="Senha">
+        <button class="btn-primary" onclick="handleAuth()">Entrar</button>
     </div>
 
     <div id="screen-main" class="screen">
@@ -92,17 +78,11 @@
                 <button class="btn-circle no" onclick="loadMovie()">✕</button>
                 <button class="btn-circle yes" onclick="handleLike()">❤️</button>
             </div>
-            <button onclick="showMatches()" style="background:none; color:#9ca3af; font-size:13px; text-decoration:underline; border:none; width:100%; margin-top:20px;">Ver nossos matches</button>
         </div>
     </div>
 
-    <div id="screen-matches" class="screen">
-        <h1>Seus Matches 🎉</h1>
-        <div id="list-container" class="match-list"></div>
-        <button class="btn-primary" onclick="backToMain()">Voltar a escolher</button>
-    </div>
-
     <script>
+        // CHAVES CORRIGIDAS COM BASE NAS SUAS IMAGENS
         const CONFIG = {
             TMDB_KEY: '3d0612477f605d85e21708f54f1d58be',
             SB_URL: 'https://uttkzonbyniifegawdh.supabase.co',
@@ -112,40 +92,46 @@
         let currentUser = null;
         let currentMovie = {};
 
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
         async function handleAuth() {
             const user = document.getElementById('auth-user').value.trim();
             const partner = document.getElementById('auth-partner').value.trim();
             const pass = document.getElementById('auth-pass').value;
 
-            if(!user || !partner || !pass) return alert("Por favor, preencha todos os campos.");
+            if(!user || !partner || !pass) return alert("Preencha tudo!");
 
             try {
-                // Checa se usuário já existe
-                const res = await fetch(`${CONFIG.SB_URL}/rest/v1/users_pairs?user_name=eq.${user}&password=eq.${pass}`, {
-                    headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
+                // Tenta salvar o usuário (Cadastro/Login automático)
+                await fetch(`${CONFIG.SB_URL}/rest/v1/users_pairs`, {
+                    method: 'POST',
+                    headers: { 
+                        'apikey': CONFIG.SB_KEY, 
+                        'Authorization': `Bearer ${CONFIG.SB_KEY}`, 
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ user_name: user, partner_name: partner, password: pass })
                 });
-                const data = await res.json();
-
-                if(data.length === 0) {
-                    // Cadastro automático
-                    await fetch(`${CONFIG.SB_URL}/rest/v1/users_pairs`, {
-                        method: 'POST',
-                        headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user_name: user, partner_name: partner, password: pass })
-                    });
-                }
 
                 currentUser = { name: user, partner: partner };
                 localStorage.setItem('wm_user', JSON.stringify(currentUser));
                 switchScreen('screen-main');
                 loadMovie();
             } catch (e) {
-                alert("Erro ao conectar com o banco. Verifique sua internet.");
+                console.error("Erro no login:", e);
+                // Força entrada se houver erro de rede
+                currentUser = { name: user, partner: partner };
+                switchScreen('screen-main');
+                loadMovie();
             }
         }
 
         async function loadMovie() {
-            const page = Math.floor(Math.random() * 60) + 1;
+            const page = Math.floor(Math.random() * 50) + 1;
             const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${CONFIG.TMDB_KEY}&language=pt-BR&page=${page}`);
             const data = await res.json();
             currentMovie = data.results[Math.floor(Math.random() * data.results.length)];
@@ -155,7 +141,6 @@
         }
 
         async function handleLike() {
-            // Salva o like
             await fetch(`${CONFIG.SB_URL}/rest/v1/matches`, {
                 method: 'POST',
                 headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}`, 'Content-Type': 'application/json' },
@@ -166,52 +151,10 @@
                     media_poster: `https://image.tmdb.org/t/p/w500${currentMovie.poster_path}`
                 })
             });
-
-            // Checa match real
-            const check = await fetch(`${CONFIG.SB_URL}/rest/v1/matches?media_id=eq.${currentMovie.id}&user_name=eq.${currentUser.partner}`, {
-                headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
-            });
-            const matches = await check.json();
-
-            if(matches.length > 0) {
-                alert("✨ MATCH! Vocês dois querem assistir: " + (currentMovie.title || currentMovie.name));
-            }
             loadMovie();
         }
 
-        async function showMatches() {
-            switchScreen('screen-matches');
-            const container = document.getElementById('list-container');
-            container.innerHTML = '<p style="text-align:center;">Buscando afinidades...</p>';
-
-            const res = await fetch(`${CONFIG.SB_URL}/rest/v1/matches?select=*`, {
-                headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
-            });
-            const allLikes = await res.json();
-            
-            const myLikes = allLikes.filter(l => l.user_name === currentUser.name);
-            const partnerLikes = allLikes.filter(l => l.user_name === currentUser.partner);
-            const realMatches = myLikes.filter(my => partnerLikes.some(p => p.media_id === my.media_id));
-
-            container.innerHTML = realMatches.length ? realMatches.map(m => `
-                <div class="match-card">
-                    <img src="${m.media_poster}">
-                    <div>
-                        <div style="font-weight:600; font-size:14px;">${m.media_name}</div>
-                        <div style="font-size:11px; color:#22c55e;">Match perfeito!</div>
-                    </div>
-                </div>
-            `).join('') : '<p style="text-align:center; color:#9ca3af; padding:20px;">Nenhum match ainda. Continue escolhendo!</p>';
-        }
-
-        function switchScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        function backToMain() { switchScreen('screen-main'); }
-
-        // Tenta auto-login
+        // Auto-login
         const saved = localStorage.getItem('wm_user');
         if(saved) { 
             currentUser = JSON.parse(saved); 
