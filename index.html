@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WatchMatch 🎬</title>
+    <style>
+        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+        .card { background: #1e293b; border-radius: 20px; padding: 15px; max-width: 350px; margin: auto; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        img { width: 100%; border-radius: 15px; height: 450px; object-fit: cover; }
+        .btns { display: flex; justify-content: space-around; margin-top: 20px; }
+        button { border: none; padding: 15px 25px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .no { background: #ef4444; color: white; }
+        .yes { background: #22c55e; color: white; }
+        h2 { font-size: 1.2rem; margin: 15px 0; height: 50px; overflow: hidden; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>WatchMatch</h1>
+        <img id="poster" src="https://via.placeholder.com/500x750?text=Carregando..." alt="Poster">
+        <h2 id="titulo">Carregando filme...</h2>
+        <div class="btns">
+            <button class="no" onclick="proximo()">Próximo ⏭️</button>
+            <button class="yes" onclick="darLike()">Gostei ❤️</button>
+        </div>
+    </div>
+
+    <script>
+        // === PREENCHA AQUI ===
+        const CONFIG = {
+            TMDB_KEY: '3d0612477f605d85e21708f54f1d58be', 
+            SB_URL: 'https://sua-url.supabase.co', 
+            SB_KEY: 'sua-anon-key-do-supabase',
+            USUARIO: 'Andre',
+            PARCEIRO: 'Esposa' 
+        };
+
+        let atual = {};
+
+        async function proximo() {
+            const page = Math.floor(Math.random() * 20) + 1;
+            const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${CONFIG.TMDB_KEY}&language=pt-BR&page=${page}`);
+            const data = await res.json();
+            atual = data.results[Math.floor(Math.random() * data.results.length)];
+            
+            document.getElementById('poster').src = `https://image.tmdb.org/t/p/w500${atual.poster_path}`;
+            document.getElementById('titulo').innerText = atual.title || atual.name;
+        }
+
+        async function darLike() {
+            // Salva no Supabase
+            await fetch(`${CONFIG.SB_URL}/rest/v1/matches`, {
+                method: 'POST',
+                headers: {
+                    'apikey': CONFIG.SB_KEY,
+                    'Authorization': `Bearer ${CONFIG.SB_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_name: CONFIG.USUARIO,
+                    media_id: atual.id.toString(),
+                    media_name: atual.title || atual.name,
+                    media_poster: `https://image.tmdb.org/t/p/w500${atual.poster_path}`
+                })
+            });
+
+            // Checa Match
+            const check = await fetch(`${CONFIG.SB_URL}/rest/v1/matches?media_id=eq.${atual.id}&user_name=eq.${CONFIG.PARCEIRO}`, {
+                headers: { 'apikey': CONFIG.SB_KEY, 'Authorization': `Bearer ${CONFIG.SB_KEY}` }
+            });
+            const matches = await check.json();
+
+            if (matches.length > 0) {
+                alert("🔥 MATCH! Vocês vão assistir: " + (atual.title || atual.name));
+            } else {
+                proximo();
+            }
+        }
+
+        proximo();
+    </script>
+</body>
+</html>
