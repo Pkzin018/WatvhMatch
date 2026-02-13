@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WatchMatch Elite 🎬</title>
+    <title>WatchMatch 🎬</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -15,8 +15,6 @@
         .active { display: flex; flex-direction: column; }
 
         h1 { font-size: 1.5rem; text-align: center; background: linear-gradient(to right, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
-        .id-badge { background: rgba(139, 92, 246, 0.2); padding: 10px; border-radius: 12px; text-align: center; font-weight: bold; margin: 10px 0; border: 1px dashed var(--primary); }
-        
         input { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 15px; color: white; margin-bottom: 12px; font-size: 16px; }
         button { width: 100%; border: none; padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
         .btn-main { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
@@ -29,177 +27,137 @@
         .no { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
         .yes { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
         
-        .history-container { margin-top: 10px; }
-        .match-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-        .match-item img { width: 45px; border-radius: 5px; height: 65px; object-fit: cover; }
+        .history-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 10px; }
+        .history-item img { width: 40px; height: 60px; border-radius: 5px; object-fit: cover; }
     </style>
 </head>
 <body>
 
     <div id="screen-auth" class="screen">
-        <h1 id="auth-title">WatchMatch</h1>
-        <p style="text-align: center; font-size: 0.8rem; color: #9ca3af; margin-top: -15px;">Acesse sua conta</p>
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="password" placeholder="Senha (mín. 6 caracteres)">
-        <button class="btn-main" id="btn-auth-action" onclick="handleAuth()">Entrar</button>
-        <button class="btn-ghost" id="btn-toggle-auth" onclick="toggleAuthMode()">Não tem conta? Criar agora</button>
-    </div>
-
-    <div id="screen-link" class="screen">
-        <h1>Sincronizar Casal</h1>
-        <div class="id-badge">Seu Código: <span id="my-code">...</span></div>
-        <p style="text-align: center; font-size: 0.8rem; color: #9ca3af;">Copie seu código acima para seu par, ou insira o dele abaixo:</p>
-        <input type="text" id="partner-code" placeholder="Código do Parceiro">
-        <button class="btn-main" onclick="linkPartner()">Vincular e Continuar</button>
+        <h1>WatchMatch</h1>
+        <input type="email" id="email" placeholder="Seu E-mail">
+        <input type="password" id="password" placeholder="Sua Senha">
+        <button class="btn-main" onclick="handleAuth('in')">Entrar</button>
+        <button class="btn-ghost" onclick="handleAuth('up')">Não tenho conta (Criar)</button>
     </div>
 
     <div id="screen-main" class="screen">
         <div class="poster-card"><img id="poster" class="poster-img" src=""></div>
-        <h2 id="titulo" style="font-size: 1rem; text-align: center; margin: 10px 0; height: 1.2rem; overflow: hidden;"></h2>
+        <h2 id="titulo" style="font-size: 1rem; text-align: center; margin: 10px 0;">Procurando...</h2>
         <div class="controls">
             <button class="btn-action no" onclick="loadMovie()">✕</button>
             <button class="btn-action yes" onclick="handleLike()">❤️</button>
         </div>
-        <div style="display:flex; justify-content: space-between; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
-            <button class="btn-ghost" onclick="showMatches()">Histórico</button>
+        <div style="display:flex; justify-content: space-between; margin-top: 20px;">
+            <button class="btn-ghost" onclick="showHistory()">Histórico</button>
             <button class="btn-ghost" onclick="logout()" style="color:#ef4444;">Sair</button>
         </div>
     </div>
 
     <div id="screen-history" class="screen">
-        <h1>Meus Gostei 🍿</h1>
-        <div id="history-list" class="history-container"></div>
-        <button class="btn-main" style="margin-top: 15px;" onclick="switchScreen('screen-main')">Voltar</button>
+        <h1>Gostei 🍿</h1>
+        <div id="history-list"></div>
+        <button class="btn-main" style="margin-top:15px" onclick="showMain()">Voltar</button>
     </div>
 
     <script>
-        const SB_URL = 'https://uttkzonbyniifegawdh.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dGt6c29uYnluaWlmZWdhd2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzg0MTYsImV4cCI6MjA4NjU1NDQxNn0.uB8N7QWxVn6nIufmqjh2B2z8KFpR6MwKMjvuKRFRP60';
-        const TMDB_KEY = '3d0612477f605d85e21708f54f1d58be';
-        
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
-        let isSignUp = false;
-        let currentUser = null;
+        const CONFIG = {
+            SB_URL: 'https://uttkzonbyniifegawdh.supabase.co',
+            SB_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dGt6c29uYnluaWlmZWdhd2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzg0MTYsImV4cCI6MjA4NjU1NDQxNn0.uB8N7QWxVn6nIufmqjh2B2z8KFpR6MwKMjvuKRFRP60',
+            TMDB_KEY: '3d0612477f605d85e21708f54f1d58be'
+        };
+
+        // CRIANDO O CLIENTE APENAS UMA VEZ PARA EVITAR O ERRO DE IDENTIFICADOR
+        const supabaseClient = supabase.createClient(CONFIG.SB_URL, CONFIG.SB_KEY);
+        let user = null;
+
+        async function handleAuth(type) {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if(!email || !password) return alert("Preencha e-mail e senha!");
+
+            const { data, error } = type === 'up' 
+                ? await supabaseClient.auth.signUp({ email, password })
+                : await supabaseClient.auth.signInWithPassword({ email, password });
+
+            if (error) alert(error.message);
+            else if (type === 'up') alert("Conta criada com sucesso! Agora você já pode entrar.");
+            else checkSession();
+        }
+
+        async function checkSession() {
+            const { data } = await supabaseClient.auth.getUser();
+            if (data.user) {
+                user = data.user;
+                showMain();
+            } else {
+                switchScreen('screen-auth');
+            }
+        }
 
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
 
-        function toggleAuthMode() {
-            isSignUp = !isSignUp;
-            document.getElementById('auth-title').innerText = isSignUp ? 'Criar Perfil' : 'WatchMatch';
-            document.getElementById('btn-auth-action').innerText = isSignUp ? 'Cadastrar' : 'Entrar';
-            document.getElementById('btn-toggle-auth').innerText = isSignUp ? 'Já tem conta? Entrar' : 'Não tem conta? Criar agora';
-        }
-
-        async function handleAuth() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            if (isSignUp) {
-                const { data, error } = await supabase.auth.signUp({ email, password });
-                if (error) alert("Erro: " + error.message);
-                else alert("Conta criada! Verifique seu e-mail (se ativado) ou faça o login agora.");
-            } else {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) alert("Credenciais inválidas.");
-                else checkSession();
-            }
-        }
-
-        async function checkSession() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                currentUser = user;
-                const myShortCode = user.id.substring(0, 6).toUpperCase();
-                document.getElementById('my-code').innerText = myShortCode;
-                
-                // Busca se já tem parceiro vinculado
-                const { data, error } = await supabase.from('users_pairs').select('partner_id').eq('user_id', user.id).single();
-                if (data && data.partner_id) {
-                    currentUser.partnerCode = data.partner_id;
-                    switchScreen('screen-main');
-                    loadMovie();
-                } else {
-                    switchScreen('screen-link');
-                }
-            } else {
-                switchScreen('screen-auth');
-            }
-        }
-
-        async function linkPartner() {
-            const pCode = document.getElementById('partner-code').value.trim().toUpperCase();
-            if(!pCode) return;
-
-            const { error } = await supabase.from('users_pairs').upsert({ 
-                user_id: currentUser.id, 
-                partner_id: pCode,
-                user_email: currentUser.email 
-            });
-
-            if (!error) {
-                currentUser.partnerCode = pCode;
-                switchScreen('screen-main');
-                loadMovie();
-            } else {
-                alert("Erro ao vincular. Tente novamente.");
-            }
+        function showMain() {
+            switchScreen('screen-main');
+            loadMovie();
         }
 
         async function loadMovie() {
-            const page = Math.floor(Math.random() * 80) + 1;
+            const page = Math.floor(Math.random() * 60) + 1;
             try {
-                const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_KEY}&language=pt-BR&page=${page}`);
+                const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${CONFIG.TMDB_KEY}&language=pt-BR&page=${page}`);
                 const data = await res.json();
                 const movie = data.results[Math.floor(Math.random() * data.results.length)];
-                if(!movie.poster_path) return loadMovie();
                 
+                if(!movie.poster_path) return loadMovie();
+
                 window.currentMovie = movie;
                 document.getElementById('poster').src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
                 document.getElementById('titulo').innerText = movie.title || movie.name;
-            } catch (e) { console.error("Erro TMDB"); }
+            } catch (e) { console.error("Erro ao carregar filme"); }
         }
 
         async function handleLike() {
-            const { error } = await supabase.from('matches').insert({
-                user_id: currentUser.id,
+            if(!user) return;
+            
+            await supabaseClient.from('matches').insert({
+                user_id: user.id,
                 media_name: window.currentMovie.title || window.currentMovie.name,
                 media_poster: `https://image.tmdb.org/t/p/w500${window.currentMovie.poster_path}`,
                 media_id: window.currentMovie.id.toString()
             });
-            if(!error) loadMovie();
+            loadMovie();
         }
 
-        async function showMatches() {
+        async function showHistory() {
             switchScreen('screen-history');
             const list = document.getElementById('history-list');
-            list.innerHTML = '<p style="text-align:center">Carregando seus favoritos...</p>';
+            list.innerHTML = 'Buscando...';
+
+            const { data, error } = await supabaseClient.from('matches').select('*').eq('user_id', user.id);
             
-            const { data, error } = await supabase.from('matches').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-            
-            if (data && data.length > 0) {
+            if(data && data.length > 0) {
                 list.innerHTML = data.map(m => `
-                    <div class="match-item">
+                    <div class="history-item">
                         <img src="${m.media_poster}">
-                        <div>
-                            <div style="font-size: 13px; font-weight: bold;">${m.media_name}</div>
-                            <div style="font-size: 10px; color: #22c55e;">Você curtiu</div>
-                        </div>
+                        <span>${m.media_name}</span>
                     </div>
                 `).join('');
             } else {
-                list.innerHTML = '<p style="text-align:center; color:#9ca3af;">Nenhum item curtido ainda.</p>';
+                list.innerHTML = '<p style="text-align:center; opacity:0.5;">Você ainda não curtiu nada.</p>';
             }
         }
 
         async function logout() {
-            await supabase.auth.signOut();
+            await supabaseClient.auth.signOut();
             location.reload();
         }
 
-        // Inicia o app verificando se há alguém logado
+        // Inicia o app
         window.onload = checkSession;
     </script>
 </body>
