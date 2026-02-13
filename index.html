@@ -3,114 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WatchMatch | Connect 🎬</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>WatchMatch | Fix 🎬</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { 
-            --accent: #a78bfa; --accent-dark: #7c3aed; --bg: #09090b; 
-            --card-bg: #18181b; --text-main: #fafafa; --text-dim: #a1a1aa;
-            --border: rgba(255, 255, 255, 0.08); --success: #22c55e; --error: #ef4444;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; }
-        body { 
-            background: var(--bg); color: var(--text-main); margin: 0; height: 100vh; 
-            display: flex; justify-content: center; align-items: center; overflow: hidden;
-            background-image: radial-gradient(circle at 50% -20%, #2e1065 0%, #09090b 80%);
-        }
-
-        .screen { display: none; width: 100%; max-width: 420px; flex-direction: column; height: 100vh; position: relative; padding: 20px; }
+        :root { --accent: #a78bfa; --bg: #09090b; --card: #18181b; --text: #fafafa; --dim: #a1a1aa; --border: rgba(255, 255, 255, 0.1); }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; display: flex; justify-content: center; }
+        
+        .screen { display: none; width: 100%; max-width: 420px; flex-direction: column; height: 100vh; padding: 20px; }
         .active { display: flex; }
 
-        /* --- AUTH & CARDS --- */
-        .auth-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; padding: 40px 30px; text-align: center; }
-        input { width: 100%; background: #09090b; border: 1px solid var(--border); border-radius: 14px; padding: 16px; color: white; margin-bottom: 12px; font-size: 1rem; }
-        button { border: none; border-radius: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-primary { background: var(--text-main); color: #000; padding: 16px; width: 100%; }
+        /* --- UI ELEMENTS --- */
+        .glass { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; }
+        input { width: 100%; background: #000; border: 1px solid var(--border); border-radius: 12px; padding: 14px; color: #fff; margin-bottom: 10px; }
+        button { border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; padding: 14px; }
+        .btn-p { background: var(--text); color: #000; width: 100%; }
         
         /* --- DRAWER --- */
-        #side-drawer {
-            position: fixed; left: -100%; top: 0; width: 85%; max-width: 320px; height: 100%;
-            background: #121214; z-index: 1000; transition: 0.4s; padding: 30px 20px; border-right: 1px solid var(--border);
-        }
-        #side-drawer.open { left: 0; }
-        .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 999; }
+        #drawer { position: fixed; left: -100%; top: 0; width: 85%; max-width: 320px; height: 100%; background: #111; z-index: 1000; transition: 0.3s; padding: 30px 20px; border-right: 1px solid var(--border); overflow-y: auto; }
+        #drawer.open { left: 0; }
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 999; }
 
-        /* --- SOLICITAÇÃO UI --- */
-        .request-card {
-            background: rgba(167, 139, 250, 0.1); border: 1px solid var(--accent);
-            padding: 15px; border-radius: 16px; margin-top: 15px; display: none;
-        }
-        .badge { background: var(--accent); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; float: right; }
-
-        /* --- MOVIE UI --- */
-        .movie-card { flex: 1; position: relative; border-radius: 32px; overflow: hidden; border: 1px solid var(--border); background: var(--card-bg); }
+        /* --- LISTAS --- */
+        .item-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 10px; }
+        .item-row img { width: 40px; height: 55px; border-radius: 5px; object-fit: cover; }
+        
+        /* --- MOVIE CARD --- */
+        .movie-card { flex: 1; position: relative; border-radius: 25px; overflow: hidden; border: 1px solid var(--border); }
         .movie-card img { width: 100%; height: 100%; object-fit: cover; }
-        .movie-details { position: absolute; bottom: 0; width: 100%; padding: 40px 25px 25px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); }
-        .actions { display: flex; gap: 20px; justify-content: center; padding: 25px 0; }
-        .circle-btn { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .movie-info { position: absolute; bottom: 0; width: 100%; padding: 30px 20px; background: linear-gradient(transparent, #000); }
+        .actions { display: flex; gap: 20px; justify-content: center; padding: 20px 0; }
+        .circle-btn { width: 70px; height: 70px; border-radius: 50%; font-size: 25px; background: var(--card); color: white; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
 
-    <div class="drawer-overlay" id="overlay" onclick="toggleMenu()"></div>
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-    <div id="side-drawer">
-        <h2 style="margin: 0;">Perfil</h2>
-        <div style="margin: 20px 0; padding: 15px; background: #1c1c20; border-radius: 15px; text-align: center;">
-            <span style="font-size: 0.7rem; color: var(--text-dim);">SEU CÓDIGO PARA CONVITE</span>
-            <strong id="my-code" style="display: block; font-size: 1.5rem; color: var(--accent); letter-spacing: 3px;">...</strong>
+    <div id="drawer">
+        <h3 style="margin-top:0">WatchMatch Menu</h3>
+        
+        <div class="glass" style="text-align:center; margin-bottom:20px;">
+            <small style="color:var(--dim)">SEU CÓDIGO</small>
+            <div id="my-code" style="font-size: 1.5rem; font-weight:700; color:var(--accent); letter-spacing:2px">...</div>
         </div>
 
-        <div id="div-send-request">
-            <span style="font-size: 0.8rem; color: var(--text-dim);">CONVIDAR PARCEIRO</span>
-            <input type="text" id="partner-code-input" placeholder="Cole o código aqui" style="margin-top:10px;">
-            <button class="btn-primary" onclick="sendRequest()" style="padding: 10px; font-size: 0.8rem;">Enviar Solicitação</button>
+        <div id="section-invite">
+            <small style="color:var(--dim)">CONVIDAR ALGUÉM</small>
+            <input type="text" id="invite-input" placeholder="Código de 6 dígitos">
+            <button class="btn-p" onclick="sendInvite()" style="padding:10px">Enviar Pedido</button>
         </div>
 
-        <div id="request-received" class="request-card">
-            <span class="badge">Novo!</span>
-            <p style="font-size: 0.85rem; margin: 0 0 10px;">Você recebeu um convite!</p>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="respondRequest('accepted')" style="background: var(--success); flex: 1; padding: 8px; font-size: 0.8rem;">Aceitar</button>
-                <button onclick="respondRequest('rejected')" style="background: var(--error); flex: 1; padding: 8px; font-size: 0.8rem;">Recusar</button>
+        <div id="section-requests" style="display:none; margin-top:20px; border: 1px solid var(--accent); padding:10px; border-radius:10px;">
+            <small style="color:var(--accent)">PEDIDO RECEBIDO!</small>
+            <div style="display:flex; gap:5px; margin-top:10px;">
+                <button onclick="respondInvite('accepted')" style="background:#22c55e; flex:1; padding:8px">Aceitar</button>
+                <button onclick="respondInvite('rejected')" style="background:#ef4444; flex:1; padding:8px">Recusar</button>
             </div>
         </div>
 
-        <div id="status-vinc" style="margin-top: 20px; font-size: 0.85rem; color: var(--success); display: none;">
-            ✅ Vinculado com sucesso!
+        <div id="section-friend" style="display:none; margin-top:20px; color:#22c55e;">
+            ✅ Você está vinculado!
         </div>
 
-        <button onclick="logout()" style="background:none; color:var(--error); margin-top: 50px; width: 100%; text-align: left; font-size: 0.8rem;">Sair</button>
+        <hr style="opacity:0.1; margin:20px 0">
+        <small style="color:var(--dim)">MEUS LIKES ❤️</small>
+        <div id="likes-list" style="margin-top:10px"></div>
+
+        <button onclick="logout()" style="background:none; color:#ef4444; margin-top:30px; padding:0; font-size:0.8rem">Sair da conta</button>
     </div>
 
-    <div id="screen-auth" class="screen active" style="justify-content: center;">
-        <div class="auth-card">
-            <h1>WatchMatch</h1>
+    <div id="screen-auth" class="screen active" style="justify-content:center">
+        <div class="glass">
+            <h2 style="text-align:center">WatchMatch</h2>
             <input type="email" id="email" placeholder="E-mail">
             <input type="password" id="password" placeholder="Senha">
-            <button class="btn-primary" onclick="handleAuth('in')">Entrar</button>
-            <button onclick="handleAuth('up')" style="background:none; color:var(--text-dim); margin-top:15px; font-size:0.8rem;">Criar conta</button>
+            <button class="btn-p" onclick="handleAuth('in')">Entrar</button>
+            <button onclick="handleAuth('up')" style="background:none; color:var(--dim); width:100%; margin-top:10px">Criar conta</button>
         </div>
     </div>
 
     <div id="screen-main" class="screen">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <div onclick="toggleMenu()" style="font-size: 24px; cursor: pointer;">☰</div>
-            <div style="font-weight: 700;">WatchMatch</div>
-            <div id="notif-dot" style="width: 10px; height: 10px; background: var(--accent); border-radius: 50%; display: none;"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+            <div onclick="toggleMenu()" style="font-size:24px; cursor:pointer">☰</div>
+            <div style="font-weight:700">WatchMatch</div>
+            <div id="dot" style="width:10px; height:10px; background:var(--accent); border-radius:50%; display:none"></div>
         </div>
 
         <div class="movie-card">
             <img id="poster" src="">
-            <div class="movie-details">
-                <h2 id="titulo">Carregando...</h2>
+            <div class="movie-info">
+                <h2 id="titulo" style="margin:0">...</h2>
             </div>
         </div>
 
         <div class="actions">
-            <button class="circle-btn" style="background: #27272a;" onclick="loadMovie()">✕</button>
-            <button class="circle-btn" style="background: var(--accent);" onclick="handleLike()">❤️</button>
+            <button class="circle-btn" onclick="loadMovie()">✕</button>
+            <button class="circle-btn" style="background:var(--accent)" onclick="handleLike()">❤️</button>
         </div>
     </div>
 
@@ -118,17 +108,10 @@
         const SB_URL = 'https://uttkzsonbyniifegawdh.supabase.co'; 
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dGt6c29uYnluaWlmZWdhd2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzg0MTYsImV4cCI6MjA4NjU1NDQxNn0.uB8N7QWxVn6nIufmqjh2B2z8KFpR6MwKMjvuKRFRP60';
         const TMDB_KEY = '3d0612477f605d85e21708f54f1d58be';
-
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
+        
         let currentUser = null;
-        let partnerID = null;
-
-        function toggleMenu() {
-            const menu = document.getElementById('side-drawer');
-            menu.classList.toggle('open');
-            document.getElementById('overlay').style.display = menu.classList.contains('open') ? 'block' : 'none';
-            if(menu.classList.contains('open')) checkRequests();
-        }
+        let partnerShortID = null;
 
         async function handleAuth(type) {
             const email = document.getElementById('email').value;
@@ -148,80 +131,57 @@
                 document.getElementById('screen-auth').classList.remove('active');
                 document.getElementById('screen-main').classList.add('active');
                 loadMovie();
-                checkRequests();
+                refreshData();
             }
         }
 
-        // ENVIAR SOLICITAÇÃO
-        async function sendRequest() {
-            const code = document.getElementById('partner-code-input').value.trim().toUpperCase();
-            if(code.length < 6) return alert("Código inválido");
-
-            // No Supabase, procuramos o usuário que tem esse início de ID
-            // Nota: Para produção, o ideal é ter uma coluna 'share_code' única.
-            // Aqui vamos simular buscando na tabela de perfis.
-            const { data } = await _supabase.from('users_pairs').upsert({ 
-                user_id: currentUser.id, 
-                partner_code: code,
-                pair_status: 'pending',
-                invited_by: currentUser.id
-            });
-            alert("Solicitação enviada! Aguarde o parceiro aceitar.");
+        function toggleMenu() {
+            document.getElementById('drawer').classList.toggle('open');
+            document.getElementById('overlay').style.display = document.getElementById('drawer').classList.contains('open') ? 'block' : 'none';
+            if(document.getElementById('drawer').classList.contains('open')) refreshData();
         }
 
-        // VERIFICAR SE HÁ CONVITES PARA MIM
-        async function checkRequests() {
-            const myShortID = currentUser.id.substring(0,6).toUpperCase();
-            
-            // Procura quem me convidou (quem colocou meu código no partner_code)
-            const { data, error } = await _supabase.from('users_pairs')
-                .select('*')
-                .eq('partner_code', myShortID)
-                .eq('pair_status', 'pending')
-                .single();
+        async function refreshData() {
+            if(!currentUser) return;
+            const myID = currentUser.id.substring(0,6).toUpperCase();
 
-            if (data) {
-                document.getElementById('request-received').style.display = 'block';
-                document.getElementById('notif-dot').style.display = 'block';
-                window.pendingRequestFrom = data.user_id;
-            } else {
-                // Checa se eu já fui aceito
-                const { data: accepted } = await _supabase.from('users_pairs')
-                    .select('*')
-                    .eq('user_id', currentUser.id)
-                    .eq('pair_status', 'accepted')
-                    .single();
-                
-                if(accepted) {
-                    document.getElementById('status-vinc').style.display = 'block';
-                    document.getElementById('div-send-request').style.display = 'none';
-                    partnerID = accepted.partner_code; // Aqui guardamos o vínculo
-                }
+            // 1. Buscar Pedidos Recebidos
+            const { data: incoming } = await _supabase.from('users_pairs').select('*').eq('partner_code', myID).eq('pair_status', 'pending').single();
+            if(incoming) {
+                document.getElementById('section-requests').style.display = 'block';
+                document.getElementById('dot').style.display = 'block';
             }
+
+            // 2. Buscar Vínculo Ativo
+            const { data: active } = await _supabase.from('users_pairs').select('*').or(`user_id.eq.${currentUser.id},partner_code.eq.${myID}`).eq('pair_status', 'accepted').single();
+            if(active) {
+                document.getElementById('section-friend').style.display = 'block';
+                document.getElementById('section-invite').style.display = 'none';
+                document.getElementById('section-requests').style.display = 'none';
+                partnerShortID = (active.user_id === currentUser.id) ? active.partner_code : active.user_id.substring(0,6).toUpperCase();
+            }
+
+            // 3. Buscar Meus Likes
+            const { data: likes } = await _supabase.from('matches').select('*').eq('user_id', currentUser.id).order('created_at', {ascending: false}).limit(10);
+            const list = document.getElementById('likes-list');
+            list.innerHTML = likes && likes.length ? likes.map(l => `<div class="item-row"><img src="${l.media_poster}"><span>${l.media_name}</span></div>`).join('') : '<small>Nenhum like</small>';
         }
 
-        // ACEITAR OU RECUSAR
-        async function respondRequest(status) {
-            const myShortID = currentUser.id.substring(0,6).toUpperCase();
-            
-            await _supabase.from('users_pairs')
-                .update({ pair_status: status })
-                .eq('partner_code', myShortID);
+        async function sendInvite() {
+            const code = document.getElementById('invite-input').value.toUpperCase().trim();
+            if(code.length < 6) return alert("Insira um código válido");
+            await _supabase.from('users_pairs').upsert({ user_id: currentUser.id, partner_code: code, pair_status: 'pending' });
+            alert("Pedido enviado!");
+        }
 
-            if(status === 'accepted') {
-                // Cria o vínculo de volta para ambos ficarem ligados
-                await _supabase.from('users_pairs').upsert({ 
-                    user_id: currentUser.id, 
-                    partner_code: window.pendingRequestFrom.substring(0,6).toUpperCase(),
-                    pair_status: 'accepted'
-                });
-            }
-            
-            location.reload();
+        async function respondInvite(status) {
+            const myID = currentUser.id.substring(0,6).toUpperCase();
+            await _supabase.from('users_pairs').update({ pair_status: status }).eq('partner_code', myID);
+            if(status === 'accepted') location.reload();
         }
 
         async function loadMovie() {
-            const page = Math.floor(Math.random() * 50) + 1;
+            const page = Math.floor(Math.random() * 80) + 1;
             const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_KEY}&language=pt-BR&page=${page}`);
             const data = await res.json();
             const movie = data.results[Math.floor(Math.random() * 10)];
@@ -231,11 +191,12 @@
         }
 
         async function handleLike() {
+            const movie = window.currentMovie;
             await _supabase.from('matches').insert({
                 user_id: currentUser.id,
-                media_name: window.currentMovie.title || window.currentMovie.name,
-                media_poster: 'https://image.tmdb.org/t/p/w500' + window.currentMovie.poster_path,
-                media_id: window.currentMovie.id.toString()
+                media_name: movie.title || movie.name,
+                media_poster: 'https://image.tmdb.org/t/p/w500' + movie.poster_path,
+                media_id: movie.id.toString()
             });
             loadMovie();
         }
