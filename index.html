@@ -1,138 +1,235 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WatchMatch 🎬</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WatchMatch 🎬</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #8b5cf6; --secondary: #ec4899; --bg: #030712; --glass: rgba(255, 255, 255, 0.08); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: white; font-family: 'Poppins', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        
+        .screen { display: none; width: 95%; max-width: 400px; background: var(--glass); backdrop-filter: blur(20px); border-radius: 30px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.6); max-height: 95vh; overflow-y: auto; position: relative; }
+        .active { display: flex; flex-direction: column; }
+        
+        h1 { font-size: 1.5rem; text-align: center; background: linear-gradient(to right, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
+        input, select { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 15px; color: white; margin-bottom: 12px; font-size: 16px; outline: none; }
+        
+        button { width: 100%; border: none; padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 10px; color: white; }
+        .btn-main { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+        .btn-ghost { background: transparent; color: #9ca3af; text-decoration: underline; font-size: 13px; }
+        
+        .poster-card { position: relative; border-radius: 20px; overflow: hidden; height: 45vh; border: 1px solid rgba(255,255,255,0.1); }
+        .poster-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .controls { display: flex; justify-content: space-evenly; margin-top: 15px; }
+        .btn-action { width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 1px solid rgba(255,255,255,0.1); background: var(--glass); }
+        .no { color: #ef4444; } .yes { color: #22c55e; box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); }
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        /* Estilo do Alerta de Match */
+        #match-popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .match-badge { background: #22c55e; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
 
-<style>
-:root {
-  --primary:#8b5cf6; --secondary:#ec4899; --bg:#030712;
-  --glass:rgba(255,255,255,.05); --glass-border:rgba(255,255,255,.1);
-}
-*{box-sizing:border-box;font-family:Poppins}
-body{
-  margin:0;height:100vh;display:flex;justify-content:center;align-items:center;
-  background:radial-gradient(circle at top right,#1e1b4b,#030712);
-  color:white;
-}
-.screen{display:none;width:90%;max-width:400px;height:90vh;flex-direction:column}
-.screen.active{display:flex}
-.glass-card{background:var(--glass);border:1px solid var(--glass-border);
-border-radius:28px;padding:25px;backdrop-filter:blur(20px)}
-.poster-container{flex:1;border-radius:25px;overflow:hidden;position:relative}
-.poster-img{width:100%;height:100%;object-fit:cover}
-.movie-info{position:absolute;bottom:0;width:100%;padding:40px 20px;
-background:linear-gradient(transparent,rgba(0,0,0,.9))}
-.btn-round{width:70px;height:70px;border-radius:50%;border:none;
-font-size:28px;color:white;cursor:pointer}
-.btn-main{border:none;padding:15px;border-radius:15px;
-background:linear-gradient(135deg,var(--primary),var(--secondary));color:white}
-.menu-toggle{background:none;border:none;color:white;font-size:26px}
-input{width:100%;padding:12px;margin-bottom:10px;border-radius:12px;
-background:rgba(255,255,255,.05);border:1px solid var(--glass-border);color:white}
-</style>
+        .history-item { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; }
+        .history-item img { width: 50px; height: 75px; border-radius: 8px; object-fit: cover; }
+    </style>
 </head>
-
 <body>
 
-<div id="screen-auth" class="screen active">
-  <div class="glass-card">
-    <h2>WatchMatch</h2>
-    <input id="email" placeholder="E-mail">
-    <input id="password" type="password" placeholder="Senha">
-    <button class="btn-main" onclick="handleAuth('in')">Entrar</button>
-    <button onclick="handleAuth('up')" style="background:none;color:#aaa;margin-top:10px">Criar conta</button>
-  </div>
-</div>
-
-<div id="screen-main" class="screen">
-  <button class="menu-toggle" onclick="logout()">⎋</button>
-
-  <div class="poster-container">
-    <img id="poster" class="poster-img">
-    <div class="movie-info">
-      <h2 id="titulo">Carregando...</h2>
+    <div id="screen-auth" class="screen">
+        <h1>WatchMatch</h1>
+        <input type="email" id="email" placeholder="Seu E-mail">
+        <input type="password" id="password" placeholder="Sua Senha">
+        <button class="btn-main" onclick="handleAuth('in')">Entrar</button>
+        <button class="btn-ghost" onclick="handleAuth('up')">Criar nova conta</button>
     </div>
-  </div>
 
-  <div style="display:flex;justify-content:space-evenly;margin:20px 0">
-    <button class="btn-round" style="background:#1f2937" onclick="loadMovie()">✕</button>
-    <button class="btn-round" style="background:linear-gradient(135deg,#ec4899,#8b5cf6)" onclick="handleLike()">❤️</button>
-  </div>
-</div>
+    <div id="screen-main" class="screen">
+        <div class="poster-card"><img id="poster" class="poster-img" src=""></div>
+        <h2 id="titulo" style="font-size: 1rem; text-align: center; margin: 10px 0;">Carregando...</h2>
+        <div class="controls">
+            <button class="btn-action no" onclick="loadMovie()">✕</button>
+            <button class="btn-action yes" onclick="handleLike()">❤️</button>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+            <button class="btn-ghost" onclick="showHistory()">Meus Gostei</button>
+            <button class="btn-ghost" onclick="showScreen('screen-profile')">Meu Perfil/Vínculo</button>
+        </div>
+        <button class="btn-ghost" onclick="logout()" style="color:#ef4444; width: 100%;">Sair</button>
+    </div>
 
-<div id="match-popup" style="display:none;position:fixed;inset:0;
-background:rgba(0,0,0,.95);z-index:10;align-items:center;justify-content:center;flex-direction:column">
-  <h1>MATCH 🎉</h1>
-  <img id="match-img" style="width:220px;border-radius:20px">
-  <button class="btn-main" onclick="closeMatch()">Continuar</button>
-</div>
+    <div id="screen-profile" class="screen">
+        <h1>Meu Perfil 👤</h1>
+        <div style="background: rgba(139, 92, 246, 0.2); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; border: 1px dashed var(--primary);">
+            <small style="opacity: 0.8;">Seu Código de Convite:</small>
+            <div id="my-display-code" style="font-size: 1.8rem; font-weight: bold; color: #a78bfa; letter-spacing: 2px;">...</div>
+        </div>
+        
+        <input type="text" id="profile-name" placeholder="Seu Nome ou Apelido">
+        <input type="text" id="partner-code-input" placeholder="Código do Parceiro(a)">
+        
+        <select id="relation-type">
+            <option value="Parceiro(a)">Parceiro(a)</option>
+            <option value="Amigo(a)">Amigo(a)</option>
+            <option value="Marido/Esposa">Marido/Esposa</option>
+            <option value="Namorado(a)">Namorado(a)</option>
+        </select>
+        
+        <button class="btn-main" onclick="saveProfile()">Salvar e Vincular</button>
+        <button class="btn-ghost" onclick="showScreen('screen-main')">Voltar</button>
+    </div>
 
-<script>
-const supabase = window.supabase.createClient(
-  "https://uttkzsonbyniifegawdh.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dGt6c29uYnluaWlmZWdhd2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzg0MTYsImV4cCI6MjA4NjU1NDQxNn0.uB8N7QWxVn6nIufmqjh2B2z8KFpR6MwKMjvuKRFRP60"
-);
+    <div id="screen-history" class="screen">
+        <h1>Minha Lista 🍿</h1>
+        <div id="history-list"></div>
+        <button class="btn-main" style="margin-top:15px" onclick="showScreen('screen-main')">Voltar</button>
+    </div>
 
-const TMDB = "https://api.themoviedb.org/3/trending/all/week?api_key=3d0612477f605d85e21708f54f1d58be&language=pt-BR";
-let currentUser = null;
-let currentMovie = null;
+    <div id="match-popup">
+        <div class="match-badge">Novo Match!</div>
+        <h1 style="margin: 0;">AEEEEEE! 🎉</h1>
+        <p id="match-message" style="font-size: 1.1rem; margin: 10px 0; color: #d1d5db;"></p>
+        <img id="match-img" src="" style="width: 220px; border-radius: 20px; border: 4px solid var(--primary); box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);">
+        <button class="btn-main" style="margin-top: 30px; width: 80%;" onclick="closeMatch()">Continuar</button>
+    </div>
 
-async function handleAuth(type){
-  const email=email.value,password=password.value;
-  const fn = type==='up'
-    ? supabase.auth.signUp
-    : supabase.auth.signInWithPassword;
-  const {error}=await fn({email,password});
-  if(error) return alert(error.message);
-  checkUser();
-}
+    <script>
+       const SB_URL = 'https://uttkzsonbyniifegawdh.supabase.co'; 
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0dGt6c29uYnluaWlmZWdhd2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5Nzg0MTYsImV4cCI6MjA4NjU1NDQxNn0.uB8N7QWxVn6nIufmqjh2B2z8KFpR6MwKMjvuKRFRP60';
+        const TMDB_KEY = '3d0612477f605d85e21708f54f1d58be';
 
-async function checkUser(){
-  const {data:{user}}=await supabase.auth.getUser();
-  if(!user) return;
-  currentUser=user;
-  screen-auth.classList.remove("active");
-  screen-main.classList.add("active");
-  loadMovie();
-}
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        let user = null;
 
-async function loadMovie(){
-  const res=await fetch(TMDB);
-  const data=await res.json();
-  const valid=data.results.filter(m=>m.poster_path);
-  currentMovie=valid[Math.floor(Math.random()*valid.length)];
-  poster.src="https://image.tmdb.org/t/p/w500"+currentMovie.poster_path;
-  titulo.innerText=currentMovie.title||currentMovie.name;
-}
+        // Gera o código de 6 dígitos baseado no ID
+        const getShortId = (uid) => uid.substring(0, 6).toUpperCase();
 
-async function handleLike(){
-  if(!currentMovie) return;
-  await supabase.from("matches").insert({
-    user_id:currentUser.id,
-    media_id:String(currentMovie.id),
-    media_name:currentMovie.title||currentMovie.name,
-    media_poster:"https://image.tmdb.org/t/p/w500"+currentMovie.poster_path
-  });
-  loadMovie();
-}
+        async function handleAuth(type) {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            try {
+                const { data, error } = type === 'up' 
+                    ? await supabaseClient.auth.signUp({ email, password })
+                    : await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                if (type === 'up') alert("Sucesso! Verifique seu e-mail.");
+                else checkUser();
+            } catch (err) { alert(err.message); }
+        }
 
-function closeMatch(){
-  document.getElementById("match-popup").style.display="none";
-  loadMovie();
-}
+        async function checkUser() {
+            const { data: { user: loggedUser } } = await supabaseClient.auth.getUser();
+            if (loggedUser) {
+                user = loggedUser;
+                document.getElementById('my-display-code').innerText = getShortId(user.id);
+                // Tenta carregar perfil salvo
+                const { data: profile } = await supabaseClient.from('users_pairs').select('*').eq('user_id', user.id).single();
+                if (profile) {
+                    document.getElementById('profile-name').value = profile.user_name || "";
+                    document.getElementById('partner-code-input').value = profile.partner_code || "";
+                }
+                showScreen('screen-main');
+                loadMovie();
+            } else {
+                showScreen('screen-auth');
+            }
+        }
 
-async function logout(){
-  await supabase.auth.signOut();
-  location.reload();
-}
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
 
-checkUser();
-</script>
+        async function loadMovie() {
+            const page = Math.floor(Math.random() * 100) + 1;
+            const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_KEY}&language=pt-BR&page=${page}`);
+            const data = await res.json();
+            const movie = data.results[Math.floor(Math.random() * data.results.length)];
+            if (!movie.poster_path) return loadMovie();
+            window.currentMovie = movie;
+            document.getElementById('poster').src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+            document.getElementById('titulo').innerText = movie.title || movie.name;
+        }
 
+        async function saveProfile() {
+            const name = document.getElementById('profile-name').value;
+            const pCode = document.getElementById('partner-code-input').value.trim().toUpperCase();
+            const relation = document.getElementById('relation-type').value;
+
+            const { error } = await supabaseClient.from('users_pairs').upsert({
+                user_id: user.id,
+                user_name: name,
+                partner_code: pCode,
+                relation_type: relation
+            });
+
+            if (error) alert("Erro: " + error.message);
+            else alert("Perfil e Vínculo salvos!");
+        }
+
+        async function handleLike() {
+            const movie = window.currentMovie;
+            const mediaId = movie.id.toString();
+
+            // Salva o like
+            await supabaseClient.from('matches').insert({
+                user_id: user.id,
+                media_name: movie.title || movie.name,
+                media_poster: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+                media_id: mediaId
+            });
+
+            // Lógica de busca de Match com parceiro
+            const pCode = document.getElementById('partner-code-input').value.toUpperCase();
+            if (pCode) {
+                const { data: othersLikes } = await supabaseClient
+                    .from('matches')
+                    .select('user_id')
+                    .eq('media_id', mediaId)
+                    .neq('user_id', user.id);
+
+                // Verifica se algum desses usuários é o parceiro vinculado
+                const isMatch = othersLikes.some(like => getShortId(like.user_id) === pCode);
+
+                if (isMatch) {
+                    showMatchAlert(movie.title || movie.name, movie.poster_path);
+                    return; // Para não carregar o próximo filme por baixo do popup imediatamente
+                }
+            }
+            loadMovie();
+        }
+
+        function showMatchAlert(name, poster) {
+            const pName = document.getElementById('profile-name').value || "seu par";
+            document.getElementById('match-message').innerHTML = `Você e seu vínculo deram match em:<br><strong>${name}</strong>`;
+            document.getElementById('match-img').src = `https://image.tmdb.org/t/p/w500${poster}`;
+            document.getElementById('match-popup').style.display = 'flex';
+        }
+
+        function closeMatch() {
+            document.getElementById('match-popup').style.display = 'none';
+            loadMovie();
+        }
+
+        async function showHistory() {
+            showScreen('screen-history');
+            const list = document.getElementById('history-list');
+            list.innerHTML = 'Carregando...';
+            const { data } = await supabaseClient.from('matches').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+            list.innerHTML = (data || []).map(m => `
+                <div class="history-item">
+                    <img src="${m.media_poster}">
+                    <strong>${m.media_name}</strong>
+                </div>
+            `).join('') || 'Lista vazia.';
+        }
+
+        async function logout() { await supabaseClient.auth.signOut(); location.reload(); }
+
+        window.onload = checkUser;
+    </script>
 </body>
 </html>
